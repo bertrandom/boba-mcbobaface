@@ -1,0 +1,27 @@
+{
+  "name": "sweet-a-little",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/client": "^3.14.0",
+    "bluebird": "^3.4.7",
+    "body-parser": "^1.16.0",
+    "cache-manager": "^2.4.0",
+    "cheerio": "^0.22.0",
+    "clone-deep": "^0.2.4",
+    "config": "^1.25.1",
+    "express": "^4.14.1",
+    "express-handlebars": "^3.0.0",
+    "oauth": "^0.9.15",
+    "redis": "^2.6.5",
+    "request": "^2.79.0",
+    "request-promise-native": "^1.0.3",
+    "yargs": "^6.6.0"
+  }
+}
