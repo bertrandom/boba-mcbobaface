@@ -44,7 +44,19 @@ app.get('/', function (req, res) {
 });
 
 app.get('/complete', function (req, res) {
-	res.render('complete', {complete: true});
+	res.render('complete');
+});
+
+app.get('/privacy', function (req, res) {
+	res.render('privacy');
+});
+
+app.get('/support', function (req, res) {
+	res.render('support');
+});
+
+app.get('/install', function (req, res) {
+	return res.redirect('https://slack.com/oauth/authorize?&client_id=2801432197.137854611223&scope=links:read,links:write');
 });
 
 app.get('/oauth', function (req, res) {
@@ -68,11 +80,21 @@ app.get('/oauth', function (req, res) {
 
 app.post('/event', function (req, res) {
 
+	if (!(req && req.body && req.body.token && req.body.token === config.slack.verification_token)){
+		return res.sendStatus(401);
+	}
+
+	if (req && req.body && req.body.type && req.body.type === 'url_verification'){
+
+		return res.json({
+			challenge: req.body.challenge
+		});
+
+	}
+
 	res.sendStatus(200);
 
 	var event = req.body.event;
-
-	console.log(req.body);
 
 	if (req.body && req.body.event && req.body.event.links && req.body.event.links.length > 0) {
 
@@ -90,8 +112,6 @@ app.post('/event', function (req, res) {
 		groupOrderId = matches[1];
 
 		return order.getOrder(groupOrderId).then(function(groupOrder) {
-
-			console.log(groupOrder);
 
 			var owner = groupOrder.owner;
 
@@ -149,85 +169,14 @@ app.post('/event', function (req, res) {
 
 });
 
-app.post('/command', function (req, res) {
-
-	var url = req.body.text;
-
-	var matches = url.match(/https:\/\/sweetalittle.com\/group_order\/([0-9a-zA-Z]+)/);
-
-	var groupOrderId;
-
-	if (!matches) {
-		groupOrderId = 'Auc76L';
-	} else {
-		groupOrderId = matches[1];
-	}
-
-	sal.getOwner(groupOrderId).then(function(owner) {
-		sal.getDrinks(groupOrderId).then(function(drinks) {
-			sal.getAvailability().then(function(availability) {
-
-				console.log(owner);
-				console.log(drinks);
-				console.log(availability);
-
-				var order = {
-					owner: owner,
-					drinks: drinks,
-					availability: availability
-				};
-
-				groupOrders[groupOrderId] = order;
-
-				res.json({
-					"response_type": "in_channel",
-					"title": owner.user.fname + ' ' + owner.user.lname + "'s Group Order",
-					"text": "A wild GROUP BOBA ORDER appears!",
-					"attachments": [{
-						"text": "",
-						"callback_id": groupOrderId,
-						"actions": [
-							{
-								"name": "add_drink",
-								"text": "Add Drink",
-								"type": "button",
-								"value": "add_drink"
-							},
-							{
-								"name": "view_cart",
-								"text": "View Cart",
-								"type": "button",
-								"value": "view_cart"
-							},
-							{
-								"name": "checkout",
-								"text": "Checkout",
-								"type": "button",
-								"style": "primary",
-								"value": "checkout"
-							},							{
-								"name": "cancel_order",
-								"text": "Cancel Order",
-								"type": "button",
-								"style": "danger",
-								"value": "cancel_order"
-							},
-						]
-					}]
-				});
-
-			});
-		});
-	});
-
-});
-
 app.post('/interact', function (req, res) {
 
 	var rawPayload = req.body.payload;
 	var payload = JSON.parse(rawPayload);
 
-	console.log(JSON.stringify(payload));
+	if (payload.token !== config.slack.verification_token){
+		return res.sendStatus(401);
+	}
 
 	var teamId = payload.team.id;
 	var slackUserId = payload.user.id;
@@ -249,7 +198,6 @@ app.post('/interact', function (req, res) {
 
 		groupOrderId = payload.callback_id;
 		action = payload.actions[0].name;
-
 
 	}
 
@@ -298,7 +246,7 @@ app.post('/interact', function (req, res) {
 						cart.forEach(function(item){
 							if (item.price){
 
-								var match = item.label.match(/\[([0-9A-Z]+) (.*)\] (.*)/);
+								var match = item.label.match(/\[([0-9A-Z]+) ([0-9A-Z]+) (.*)\] (.*)/);
 
 								var title;
 
@@ -309,8 +257,13 @@ app.post('/interact', function (req, res) {
 								if (match){
 
 									drinkUserId = match[1];
+									drinkTeamId = match[2];
 									slackUserText = '<@' + drinkUserId + '>';
-									label = match[3];
+									label = match[4];
+
+									if (drinkTeamId != teamId){
+										slackUserText = match[3];
+									}
 
 								}else{
 
@@ -489,12 +442,6 @@ app.post('/interact', function (req, res) {
 				case "add_to_cart":
 
 					res.status(200).send();
-					// res.json({
-					// 	"response_type": "ephemeral",
-					// 	"delete_original": true
-					// });
-
-					console.log(payload.response_url);
 
 					sal.getOwner(groupOrderId).then(function(owner) {
 
@@ -559,7 +506,7 @@ app.post('/interact', function (req, res) {
 
 							var label = payload.submission.label;
 
-							sal.addToCart(drink, owner, payload.user, selectedDrink, label).then(function(order) {
+							sal.addToCart(drink, owner, teamId, payload.user, selectedDrink, label).then(function(order) {
 
 								return rp({
 									uri: callbackData.response_url,
@@ -614,12 +561,6 @@ app.post('/interact', function (req, res) {
 				case "modify":
 
 					res.status(200).send();
-					// res.json({
-					// 	"response_type": "ephemeral",
-					// 	"delete_original": true
-					// });
-
-					console.log(payload.response_url);
 
 					store.getDrink(groupOrderId, teamId, slackUserId).then(function(drink) {
 

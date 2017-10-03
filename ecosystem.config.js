@@ -5,10 +5,10 @@ module.exports = {
    */
   apps : [
     {
-      name      : 'bobabot',
+      name      : 'boba-mcbobaface',
       script    : './index.js',
       watch     : true,
-      ignore_watch: ["node_modules"],
+      ignore_watch: ["node_modules", ".git"],
       instance_var: 'INSTANCE_ID',
       env: {
         NODE_ENV: 'dev',
