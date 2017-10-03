@@ -460,13 +460,13 @@ app.post('/interact', function (req, res) {
 								type: 'text',
 							});
 
-							elements.push({
-								name: 'comments',
-								label: "Comments",
-								hint: "Write a thank you to " + owner.user.fname + ' ' + owner.user.lname + ' for organizing this order',
-								type: 'textarea',
-								optional: true,
-							});
+							// elements.push({
+							// 	name: 'comments',
+							// 	label: "Comments",
+							// 	hint: "Write a thank you to " + owner.user.fname + ' ' + owner.user.lname + ' for organizing this order',
+							// 	type: 'textarea',
+							// 	optional: true,
+							// });
 
 							var callback_id = {
 								action: 'finish_add_to_cart',
