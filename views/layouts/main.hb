@@ -33,6 +33,12 @@
 
       {{{body}}}
 
+      <div class="mastfoot">
+        <div class="inner">
+          <p>created by <a href="https://twitter.com/bertrandom">@bertrandom</a></p>
+        </div>
+      </div>
+
     </div>
 
   </body>

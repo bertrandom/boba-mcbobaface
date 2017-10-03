@@ -27,3 +27,9 @@ body {
 .marketing {
   padding-top: 1.5rem;
 }
+
+.mastfoot {
+  text-align: center;
+  padding-top: 2rem;
+  width: 100%; /* Must be percentage or pixels for horizontal alignment */
+}
